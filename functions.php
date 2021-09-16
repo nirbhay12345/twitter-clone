@@ -1,8 +1,15 @@
+<?php error_reporting (E_ALL ^ E_NOTICE); ?>
+<?php error_reporting (E_ALL ^ E_WARNING); ?>
 <?php
 
     session_start();
 
-    $link = mysqli_connect("shareddb-v.hosting.stackcp.net", "twitter-3134379fea", "hxavb0hq6k", "shareddb-v.hosting.stackcp.net");
+    $host = "localhost";
+    $username = "id17600694_nirbhayc03twitterclone";
+    $password = "3BKyW/=FfSC<ma3>";
+    $db_name = "id17600694_twitterclonenirbhay";
+    
+    $link = mysqli_connect($host, $username, $password, $db_name);
 
     if (mysqli_connect_errno()) {
 
@@ -10,14 +17,18 @@
         exit();
 
     }
+        
+    if (isset($_GET['function'])){
+        // unset the session id
+        if ($_GET['function'] == "logout") {
 
-    if ($_GET['function'] == "logout") {
+            session_unset();
 
-        session_unset();
+        }
+    }    
 
-    }
 
-        function time_since($since) {
+    function time_since($since) {
         $chunks = array(
             array(60 * 60 * 24 * 365 , 'year'),
             array(60 * 60 * 24 * 30 , 'month'),
@@ -48,7 +59,7 @@
 
             $whereClause = "";
 
-        } else if ($type == 'isFollowing') {
+        } else if ($type == 'isFollowing' && isset($_SESSION['id'])) {
 
             $query = "SELECT * FROM isFollowing WHERE follower = ". mysqli_real_escape_string($link, $_SESSION['id']);
             $result = mysqli_query($link, $query);
@@ -65,8 +76,12 @@
             }
 
         } else if ($type == 'yourtweets') {
-
-           $whereClause = "WHERE userid = ". mysqli_real_escape_string($link, $_SESSION['id']);
+            
+            if (isset($_SESSION['id'])){
+            
+                $whereClause = "WHERE userid = ". mysqli_real_escape_string($link, $_SESSION['id']);
+                
+            }
 
         } else if ($type == 'search') {
 
@@ -77,22 +92,23 @@
         } else if (is_numeric($type)) {
 
             $userQuery = "SELECT * FROM users WHERE id = ".mysqli_real_escape_string($link, $type)." LIMIT 1";
-                $userQueryResult = mysqli_query($link, $userQuery);
-                $user = mysqli_fetch_assoc($userQueryResult);
+            $userQueryResult = mysqli_query($link, $userQuery);
+            $user = mysqli_fetch_assoc($userQueryResult);
 
             echo "<h2>".mysqli_real_escape_string($link, $user['email'])."'s Tweets</h2>";
 
             $whereClause = "WHERE userid = ". mysqli_real_escape_string($link, $type);
 
-
         }
 
-
+        if (!isset($whereClause)){
+            $whereClause = "";
+        }
         $query = "SELECT * FROM tweets ".$whereClause." ORDER BY `datetime` DESC LIMIT 10";
 
         $result = mysqli_query($link, $query);
 
-        if (mysqli_num_rows($result) == 0) {
+        if (isset($result) && mysqli_num_rows($result) == 0) {
 
             echo "There are no tweets to display.";
 
@@ -100,26 +116,33 @@
 
             while ($row = mysqli_fetch_assoc($result)) {
 
-                $userQuery = "SELECT * FROM users WHERE id = ".mysqli_real_escape_string($link, $row['userid'])." LIMIT 1";
-                $userQueryResult = mysqli_query($link, $userQuery);
-                $user = mysqli_fetch_assoc($userQueryResult);
-
-                echo "<div class='tweet'><p><a href='?page=publicprofiles&userid=".$user['id']."'>".$user['email']."</a> <span class='time'>".time_since(time() - strtotime($row['datetime']))." ago</span>:</p>";
-
-                echo "<p>".$row['tweet']."</p>";
-
-                echo "<p><a class='toggleFollow' data-userId='".$row['userid']."'>";
-
+                if (isset($row['userid'])){  
+                    $userQuery = "SELECT * FROM users WHERE id = ".mysqli_real_escape_string($link, $row['userid'])." LIMIT 1";
+                    $userQueryResult = mysqli_query($link, $userQuery);
+                    $user = mysqli_fetch_assoc($userQueryResult);
+                    echo "<div class='tweet'><p><a href='?page=publicprofiles&userid=".$user['id']."'>".$user['email']."</a> <span class='time'>".time_since(time() - strtotime($row['datetime']))." ago</span>:</p>";
+    
+                    echo "<p>".$row['tweet']."</p>";
+    
+                    echo "<p><a class='toggleFollow' data-userId='".$row['userid']."'>";
+                }
+            if (isset($_SESSION['id']) && isset($row['userid'])){
+                
                 $isFollowingQuery = "SELECT * FROM isFollowing WHERE follower = ". mysqli_real_escape_string($link, $_SESSION['id'])." AND isFollowing = ". mysqli_real_escape_string($link, $row['userid'])." LIMIT 1";
-            $isFollowingQueryResult = mysqli_query($link, $isFollowingQuery);
-            if (mysqli_num_rows($isFollowingQueryResult) > 0) {
-
-                echo "Unfollow";
-
-            } else {
-
-                echo "Follow";
-
+                $isFollowingQueryResult = mysqli_query($link, $isFollowingQuery);
+                
+            }
+            if(isset($isFollowingQueryResult) && $isFollowingQueryResult){
+                
+                if (mysqli_num_rows($isFollowingQueryResult) > 0) {
+    
+                    echo "Unfollow";
+    
+                } else {
+    
+                    echo "Follow";
+    
+                }
             }
 
 
@@ -147,20 +170,19 @@
 
     function displayTweetBox() {
 
-        if ($_SESSION['id'] > 0) {
-
-            echo '<div id="tweetSuccess" class="alert alert-success">Your tweet was posted successfully.</div>
-            <div id="tweetFail" class="alert alert-danger"></div>
-            <div class="form">
-  <div class="form-group">
-    <textarea class="form-control" id="tweetContent"></textarea>
-  </div>
-  <button id="postTweetButton" class="btn btn-primary">Post Tweet</button>
-</div>';
-
-
-        }
-
+            if (isset($_SESSION['id']) && $_SESSION['id'] > 0) {
+    
+                echo '<div id="tweetSuccess" class="alert alert-success">Your tweet was posted successfully.</div>
+                <div id="tweetFail" class="alert alert-danger"></div>
+                <div class="form">
+                  <div class="form-group">
+                    <textarea class="form-control" id="tweetContent"></textarea>
+                  </div>
+                  <button id="postTweetButton" class="btn btn-primary">Post Tweet</button>
+                </div>';
+                
+    
+            }
 
     }
 
