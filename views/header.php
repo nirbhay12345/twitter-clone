@@ -8,8 +8,9 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
-
+    <link rel="icon" href="../twitter-icon.ico" >
       <link rel="stylesheet" href="../styles.css">
+    <title>Twitter-Clone</title>
   </head>
   <body>
 
@@ -28,7 +29,7 @@
   </ul>
   <div class="form-inline pull-xs-right">
 
-      <?php if ($_SESSION['id']) { ?>
+      <?php if (isset($_SESSION['id'])) { ?>
 
         <a class="btn btn-success-outline" href="?function=logout">Logout</a>
 

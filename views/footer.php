@@ -77,7 +77,7 @@
             success: function(result) {
                 if (result == "1") {
 
-                    window.location.assign("http://completewebdevelopercourse.com/content/12-twitter/");
+                    window.location.assign("https://clone-nirbhay.000webhostapp.com/");
 
                 } else {
 

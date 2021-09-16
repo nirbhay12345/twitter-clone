@@ -3,7 +3,7 @@
     <div class="row">
   <div class="col-md-8">
       
-        <?php if ($_GET['userid']) { ?>
+        <?php if (isset($_GET['userid']) && $_GET['userid']) { ?>
       
       <?php displayTweets($_GET['userid']); ?>
       
